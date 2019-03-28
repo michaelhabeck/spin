@@ -1,6 +1,7 @@
 """
 Testing the axis-angle parameterization
 """
+import sys
 import spin
 import numpy as np
 import unittest
@@ -69,9 +70,14 @@ class TestAxisAngle(unittest.TestCase):
 
         names   = ('theta', 'phi', 'alpha')
         pdfs    = (spin.Polar, spin.Azimuth, spin.RotationAngle)
-
-        kw_hist = dict(density=True, alpha=0.2, color='k', bins=100)
+        
+        kw_hist = dict(alpha=0.2, color='k', bins=100)
         kw_plot = dict(alpha=0.7, color='r', lw=3)
+
+        if sys.version_info[0] == 2:
+            kw_hist['normed'] = True
+        else:
+            kw_hist['density'] = True
 
         print(make_title('checking random sampling'))
 

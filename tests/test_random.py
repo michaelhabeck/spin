@@ -1,6 +1,7 @@
 """
 Testing various ways of generating random rotations
 """
+import sys
 import spin
 import numpy as np
 import csb.numeric as csb
@@ -26,8 +27,11 @@ class TestRandom(unittest.TestCase):
         R = spin.random_rotation(n)
         nbins = 200
         
-        kw_hist = dict(density=True, alpha=0.2, color='k', bins=50)
+        kw_hist = dict(alpha=0.2, color='k', bins=50)
         kw_plot = dict(alpha=0.7, color='r', lw=3)
+
+        kw_hist['normed' if sys.version_info[0] == 2 else 'density'] = True
+        
         fig, ax = plt.subplots(4,3,figsize=(12,16))
 
         ## Euler angles
@@ -80,7 +84,7 @@ class TestRandom(unittest.TestCase):
         ## quaternion
 
         names = ('x','y','z')
-        dofs  = np.transpose(list(map(spin.Quaternion._from_matrix, R))[:3])
+        dofs  = np.transpose(list(map(spin.Quaternion._from_matrix, R)))[:3]
 
         for k, (name, values) in enumerate(zip(names, dofs)):
             ax[3,k].hist(values,label=r'${0}$'.format(name), **kw_hist)        

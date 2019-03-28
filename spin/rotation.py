@@ -117,7 +117,7 @@ class RotationAngle(Angle):
             return brentq(f, *cls.axis(2))
 
         else:
-            return np.array([cls.random() for _ in xrange(int(n))])
+            return np.array([cls.random() for _ in range(int(n))])
 
     @classmethod
     def log_prob(cls, x):
@@ -172,7 +172,7 @@ class Rotation(Transformation):
         if n is None:
             return random_rotation(np.zeros((3,3)))
         else:
-            return np.array([cls.random() for _ in xrange(n)])
+            return np.array([cls.random() for _ in range(n)])
 
     @property
     def dofs(self):

@@ -1,6 +1,7 @@
 """
 Testing the exponential map
 """
+import sys
 import spin
 import numpy as np
 import unittest
@@ -77,8 +78,9 @@ class TestExpMap(unittest.TestCase):
 
         fig, axes = plt.subplots(1,4,figsize=(16,4))
 
-        kw_hist = dict(density=True, alpha=0.2, color='k', bins=50)
+        kw_hist = dict(alpha=0.2, color='k', bins=50)
         kw_plot = dict(alpha=0.7, color='r', lw=3)
+        kw_hist['normed' if sys.version_info[0] == 2 else 'density'] = True
 
         for name, values, ax in zip(names, dofs, axes):
             ax.hist(values,label=r'${0}$'.format(name), **kw_hist)

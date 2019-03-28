@@ -1,3 +1,4 @@
+import sys
 import spin
 import numpy as np
 import pylab as plt
@@ -34,11 +35,14 @@ names = [func.trafo.name for func in objectives]
 print(np.round(results[:,1::2].mean(0), 1))
 print(np.var(results[:,::2],0))
 
+kw_hist = dict(bins=30,alpha=0.5)
+kw_hist['normed' if sys.version_info[0] == 2 else 'density'] = True
+
 fig, ax = plt.subplots(1,2,figsize=(10,5))
 for k, name in enumerate(names):
-    ax[0].hist(results[:,2*k+1],bins=30,alpha=0.5,density=True,label=name)
+    ax[0].hist(results[:,2*k+1],label=name, **kw_hist)
 ax[0].legend()
 for k, name in enumerate(names):
-    ax[1].hist(results[:,2*k],bins=30,alpha=0.5,density=True,label=name)
+    ax[1].hist(results[:,2*k],label=name, **kw_hist)
 ax[1].legend()
 fig.tight_layout()

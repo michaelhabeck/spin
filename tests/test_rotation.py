@@ -1,6 +1,7 @@
 """
 Testing rotation module
 """
+import sys
 import spin
 import spin.rotation
 import numpy as np
@@ -37,13 +38,19 @@ class TestRotation(unittest.TestCase):
         print(make_title('angular distributions'))
 
         n = int(1e5)
-        nbins = n / 100
+        nbins = n // 100
         tol = 1e-2
+
+        kw_hist = dict(bins=nbins)
+        if sys.version_info[0] == 2:
+            kw_hist['normed'] = True
+        else:
+            kw_hist['density'] = True
         
         for angle in (spin.Azimuth, spin.Polar, spin.RotationAngle):
 
             x = angle.random(n)
-            p, bins = np.histogram(x, bins=nbins, density=True)
+            p, bins = np.histogram(x, **kw_hist)
             q = angle.prob(0.5 * (bins[1:] + bins[:-1]))
 
             mse = np.mean((q-p)**2)
