@@ -6,8 +6,8 @@ import numpy as np
 from .trafo import Transformation, Translation
 from .rotation import Rotation
 
-class RigidMotion(Transformation):
-    """RigidMotion
+class RigidTransformation(Transformation):
+    """RigidTransformation
 
     Rotation followed by a translation.
     """

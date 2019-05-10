@@ -24,7 +24,7 @@ class TestRigid(unittest.TestCase):
         R = spin.random_rotation()
         t = np.random.standard_normal(3) * 10
 
-        trafos = [spin.RigidMotion(R, t, rot_type) for rot_type in rot_types]
+        trafos = [spin.RigidTransformation(R, t, rot_type) for rot_type in rot_types]
 
         self.coords = load_coords(['1ake','4ake'])
         self.trafos = trafos
@@ -135,7 +135,7 @@ class TestRigid(unittest.TestCase):
 
         ## print trafo.rotation
 
-        ## trafos = [spin.RigidMotion(spin.Quaternion(spin.Quaternion.random()).matrix,
+        ## trafos = [spin.RigidTransformation(spin.Quaternion(spin.Quaternion.random()).matrix,
         ##                            np.random.standard_normal(3)) for _ in range(2)]
 
         ## coords = np.random.random((10,3))

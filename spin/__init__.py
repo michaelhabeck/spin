@@ -10,7 +10,7 @@ Three-dimensional rotation matrices and various parameterizations including
 """
 import numpy as np
 
-from .rigid import RigidMotion
+from .rigid import RigidTransformation
 from .trafo import Translation, compose
 from .fitting import LeastSquares, NearestRotation, NearestUnitQuaternion, NearestQuaternion
 from .rotation import Rotation, Parameterization, EulerAngles
