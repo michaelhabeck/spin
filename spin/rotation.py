@@ -17,11 +17,16 @@ from csb.statistics.rand import random_rotation
 
 from scipy.optimize import brentq
 
+def det3x3(a):    
+    return +a[0,0] * (a[1,1] * a[2,2] - a[2,1] * a[1,2]) \
+           -a[1,0] * (a[0,1] * a[2,2] - a[2,1] * a[0,2]) \
+           +a[2,0] * (a[0,1] * a[1,2] - a[1,1] * a[0,2])
+
 def is_rotation_matrix(R):
     """
     Checks if numpy array is a three-dimensional rotation matrix.
     """
-    return R.shape == (3,3) and abs(np.linalg.det(R) - 1.0) < 1e-10
+    return R.shape == (3,3) and abs(det3x3(R) - 1.0) < 1e-10
 
 def skew_matrix(a):
     """
