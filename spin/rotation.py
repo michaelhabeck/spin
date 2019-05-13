@@ -285,7 +285,7 @@ class EulerAngles(Parameterization):
         return np.array(euler.params(np.ascontiguousarray(R)))
 
     def _to_matrix(self):
-        R = np.zeros((3,3))
+        R = np.ascontiguousarray(np.zeros((3,3)))
         euler.matrix(self.dofs, R)
         return R
 
@@ -317,7 +317,7 @@ class AxisAngle(Parameterization):
         return np.array(axisangle.params(np.ascontiguousarray(R)))
 
     def _to_matrix(self):
-        R = np.zeros((3,3))
+        R = np.ascontiguousarray(np.zeros((3,3)))
         axisangle.matrix(self.dofs, R)
         return R
 
@@ -351,7 +351,7 @@ class ExponentialMap(AxisAngle):
         return np.array(expmap.params(np.ascontiguousarray(R)))
         
     def _to_matrix(self):
-        R = np.zeros((3,3))
+        R = np.ascontiguousarray(np.zeros((3,3)))
         expmap.matrix(self.dofs, R)
         return R
 
@@ -394,7 +394,7 @@ class Quaternion(Parameterization):
     a unit quaternion.
     """
     def _to_matrix(self):
-        R = np.zeros((3,3))
+        R = np.ascontiguousarray(np.zeros((3,3)))
         quaternion.matrix(self.dofs, R)
         return R
 
