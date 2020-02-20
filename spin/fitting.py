@@ -2,9 +2,46 @@
 Least-squares fitting and nearest rotation matrix
 """
 import numpy as np
+import scipy.linalg as la
 
 from .trafo import Transformation
-from .rotation import Rotation, Quaternion
+from .rotation import Rotation, Quaternion, map_to_quat
+
+def qfit(target, source):
+    """
+    Least-squares fitting of source onto target using unit
+    quaternions
+
+    Parameters
+    ----------
+    target : (N,3) array
+      3D point cloud onto which the source will be transformed
+    source : (N,3) array
+      3D point cloud that will be transformed so as to fit the
+      target optimally in a least-squares sense
+
+    Returns
+    -------
+    R : (3,3) array
+      optimal rotation matrix
+    t : (3,) array
+      optimal translation vector
+    """
+    assert target.ndim == 2
+    assert np.shape(target)[1] == 3
+    assert np.shape(target) == np.shape(source)
+    
+    x = target.mean(0)
+    y = source.mean(0)
+    A = np.dot((target-x).T, source-y)
+    M = map_to_quat(A)
+
+    _, q = la.eigh(M, eigvals=[3,3])
+
+    R = Quaternion(q.flatten()).matrix
+    t = x - R.dot(y)
+
+    return R, t
 
 class LeastSquares(object):
     """LeastSquares

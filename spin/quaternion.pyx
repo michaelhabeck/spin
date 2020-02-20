@@ -149,3 +149,27 @@ def jacobian(double[::1] q, double[:, ::1] A, double[:, ::1] B,
     D[2,1] = 2*y/r - 2*z*(2*w*x + 2*y*z)/r**2
     D[2,2] = -2*z*(w**2 - x**2 - y**2 + z**2)/r**2 + 2*z/r
 
+@cython.boundscheck(True)
+@cython.wraparound(False)
+def map_to_quat(double[:, ::1] A, double[:, ::1] M):
+    """
+    Construct a 4x4 matrix 'M' such that the (linear) inner product
+    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
+    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
+    is the unit quaternion encoding 'R'.
+    """
+    M[0,0] =  A[0,0] + A[1,1] + A[2,2]
+    M[1,1] =  A[0,0] - A[1,1] - A[2,2]
+    M[2,2] = -A[0,0] + A[1,1] - A[2,2]
+    M[3,3] = -A[0,0] - A[1,1] + A[2,2]
+
+    M[0,1] = M[1,0] = -A[1,2] + A[2,1]
+    M[0,2] = M[2,0] =  A[0,2] - A[2,0] 
+    M[0,3] = M[3,0] = -A[0,1] + A[1,0]
+
+    M[1,2] = M[2,1] =  A[0,1] + A[1,0]
+    M[1,3] = M[3,1] =  A[0,2] + A[2,0]
+
+    M[2,3] = M[3,2] =  A[1,2] + A[2,1]
+
+

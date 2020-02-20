@@ -47,8 +47,8 @@ import spin
 
 rot = spin.AxisAngle(spin.random_rotation())
 
-print rot.rotation.matrix
-print R2(*rot.params)
+print rot.matrix
+print R2(*rot.dofs)
 
 RR = matrices.exp(skew_matrix(a))
 

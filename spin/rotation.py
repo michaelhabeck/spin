@@ -48,6 +48,48 @@ def distance(a, b):
 
     return 1 - np.sum(a*b) / 3
 
+def map_to_quat(A):
+    """
+    Construct a 4x4 matrix 'M' such that the (linear) inner product
+    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
+    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
+    is the unit quaternion encoding 'R'.
+    """
+    assert np.shape(A) == (3,3), '(3,3) matrix required'
+    
+    M = np.empty((4,4),dtype=A.dtype)
+
+    M[0,0] =  A[0,0] + A[1,1] + A[2,2]
+    M[1,1] =  A[0,0] - A[1,1] - A[2,2]
+    M[2,2] = -A[0,0] + A[1,1] - A[2,2]
+    M[3,3] = -A[0,0] - A[1,1] + A[2,2]
+
+    M[0,1] = M[1,0] = -A[1,2] + A[2,1]
+    M[0,2] = M[2,0] =  A[0,2] - A[2,0] 
+    M[0,3] = M[3,0] = -A[0,1] + A[1,0]
+
+    M[1,2] = M[2,1] =  A[0,1] + A[1,0]
+    M[1,3] = M[3,1] =  A[0,2] + A[2,0]
+
+    M[2,3] = M[3,2] =  A[1,2] + A[2,1]
+
+    return M
+
+def map_to_quat(A):
+    """
+    Construct a 4x4 matrix 'M' such that the (linear) inner product
+    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
+    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
+    is the unit quaternion encoding 'R'.
+    """
+    assert np.shape(A) == (3,3), '(3,3) matrix required'
+    
+    M = np.empty((4,4),dtype=A.dtype)
+
+    quaternion.map_to_quat(A,M)
+
+    return M
+
 class Angle(object):
 
     @classmethod
