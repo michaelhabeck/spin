@@ -197,21 +197,7 @@ class NearestUnitQuaternion(NearestRotation):
         """
         super(NearestUnitQuaternion, self).__init__(A, Quaternion())
 
-        self.M = M = np.zeros((4,4))
-
-        M[0,0] =  A[0,0] + A[1,1] + A[2,2]
-        M[1,1] =  A[0,0] - A[1,1] - A[2,2]
-        M[2,2] = -A[0,0] + A[1,1] - A[2,2]
-        M[3,3] = -A[0,0] - A[1,1] + A[2,2]
-
-        M[0,1] = M[1,0] = -A[1,2] + A[2,1]
-        M[0,2] = M[2,0] =  A[0,2] - A[2,0] 
-        M[0,3] = M[3,0] = -A[0,1] + A[1,0]
-
-        M[1,2] = M[2,1] =  A[0,1] + A[1,0]
-        M[1,3] = M[3,1] =  A[0,2] + A[2,0]
-
-        M[2,3] = M[3,2] =  A[1,2] + A[2,1]
+        self.M = map_to_quat(A)
 
     def __call__(self, q):
         """
