@@ -1,7 +1,7 @@
 """
-Three-dimensional rotation implemented as subclasses of
-Transformation. Support for various parameterizations including
-quaternions, Euler angles, axis-angle and the exponential map.
+Three-dimensional rotation implemented as subclasses of Transformation. Support
+for various parameterizations including quaternions, Euler angles, axis-angle
+and the exponential map.
 """
 import numpy as np
 import csb.numeric as csb
@@ -17,47 +17,44 @@ from csb.statistics.rand import random_rotation
 
 from scipy.optimize import brentq
 
+
 def det3x3(a):    
     return +a[0,0] * (a[1,1] * a[2,2] - a[2,1] * a[1,2]) \
            -a[1,0] * (a[0,1] * a[2,2] - a[2,1] * a[0,2]) \
            +a[2,0] * (a[0,1] * a[1,2] - a[1,1] * a[0,2])
 
+
 def is_rotation_matrix(R):
-    """
-    Checks if numpy array is a three-dimensional rotation matrix.
-    """
-    return R.shape == (3,3) and abs(det3x3(R) - 1.0) < 1e-10
+    """Checks if numpy array is a three-dimensional rotation matrix."""
+    return R.shape == (3, 3) and np.isclose(det3x3(R), 1.0)
+
 
 def skew_matrix(a):
-    """
-    Skew-symmetric matrix generated from a 3D vector. Multiplication
-    with this matrix with another vector is the same as the cross-
-    product between the two vectors.
+    """Skew-symmetric matrix generated from a 3D vector. Multiplication with
+    this matrix with another vector is the same as the cross-product between
+    the two vectors.
     """
     return np.array([[0, -a[2], a[1]],
                      [a[2], 0, -a[0]],
                      [-a[1], a[0], 0]])
 
+
 def distance(a, b):
-    """
-    Frobenius distance between two three-dimensional rotation
-    matrices
-    """
+    """Frobenius distance between two three-dimensional rotation matrices. """
     if isinstance(a, Rotation): a = a.matrix
     if isinstance(b, Rotation): b = b.matrix
-
     return 1 - np.sum(a*b) / 3
 
+
 def map_to_quat(A):
+    """Construct a 4x4 matrix 'M' such that the (linear) inner product between
+    the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)') can be written in
+    quadratic form: 'np.dot(q,M.dot(q))' where 'q' is the unit quaternion
+    encoding 'R'.
     """
-    Construct a 4x4 matrix 'M' such that the (linear) inner product
-    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
-    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
-    is the unit quaternion encoding 'R'.
-    """
-    assert np.shape(A) == (3,3), '(3,3) matrix required'
+    assert np.shape(A) == (3, 3), '(3,3) matrix required'
     
-    M = np.empty((4,4),dtype=A.dtype)
+    M = np.empty((4, 4), dtype=A.dtype)
 
     M[0,0] =  A[0,0] + A[1,1] + A[2,2]
     M[1,1] =  A[0,0] - A[1,1] - A[2,2]
@@ -75,20 +72,21 @@ def map_to_quat(A):
 
     return M
 
-def map_to_quat(A):
-    """
-    Construct a 4x4 matrix 'M' such that the (linear) inner product
-    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
-    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
-    is the unit quaternion encoding 'R'.
-    """
-    assert np.shape(A) == (3,3), '(3,3) matrix required'
-    
-    M = np.empty((4,4),dtype=A.dtype)
 
-    quaternion.map_to_quat(A,M)
+def map_to_quat(A):
+    """Construct a 4x4 matrix 'M' such that the (linear) inner product between
+    the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)') can be written in
+    quadratic form: 'np.dot(q,M.dot(q))' where 'q' is the unit quaternion
+    encoding 'R'.
+    """
+    assert np.shape(A) == (3, 3), '(3, 3) matrix required'
+    
+    M = np.empty((4, 4), dtype=A.dtype)
+
+    quaternion.map_to_quat(A, M)
 
     return M
+
 
 class Angle(object):
 
@@ -113,12 +111,12 @@ class Angle(object):
 
         return p
 
+    
 class Azimuth(Angle):
 
     @classmethod
     def random(cls, n):
-        """
-        Generate random azimuth angles, ie. uniformly distributed angles. 
+        """Generate random azimuth angles, ie. uniformly distributed angles.
         """        
         return np.random.random(n) * 2 * np.pi
 
@@ -130,13 +128,12 @@ class Azimuth(Angle):
     def axis(cls, n):
         return np.linspace(0., 2 * np.pi, int(n))
 
+    
 class Polar(Angle):
 
     @classmethod
     def random(cls, n=None):
-        """
-        Generate random polar angles.
-        """
+        """Generate random polar angles. """
         u = np.random.uniform(-1.,1.,size=n)
         return np.arccos(u)
 
@@ -148,12 +145,12 @@ class Polar(Angle):
     def axis(cls, n):
         return np.linspace(0., np.pi, int(n))
 
+    
 class RotationAngle(Angle):
 
     @classmethod
     def random(cls, n=None):
-        """
-        Generate random rotation angles, ie. angles following
+        """Generate random rotation angles, ie. angles following
         \alpha ~ sin^2(\alpha/2)
         """
         if n is None:
@@ -174,6 +171,7 @@ class RotationAngle(Angle):
     def axis(cls, n):
         return np.linspace(0., np.pi, int(n))
 
+    
 class Rotation(Transformation):
     """Rotation
 
@@ -202,9 +200,8 @@ class Rotation(Transformation):
         return self.matrix.T
 
     def map_forces(self, coords, forces):
-        """
-        Map Cartesian into space of rotation matrices.
-        """
+        """Map Cartesian gradient into space of rotation matrices. """
+
         return np.dot(forces.T, coords)
     
     def __str__(self):
@@ -213,9 +210,7 @@ class Rotation(Transformation):
 
     @classmethod
     def random(cls, n=None):
-        """
-        Random rotation matrix
-        """
+        """Random rotation matrix. """
         if n is None:
             return random_rotation(np.zeros((3,3)))
         else:
@@ -237,11 +232,10 @@ class Rotation(Transformation):
         self.matrix[...] = R
 
     def dot(self, A):
-        """
-        Returns trace(A.T*R) where R is the rotation matrix
-        """
+        """Returns trace(A.T*R) where R is the rotation matrix. """
         return np.sum(A * self.matrix)
 
+    
 class Parameterization(Rotation):
     """Parameterization
 
@@ -339,10 +333,9 @@ class EulerAngles(Parameterization):
 
     @classmethod
     def random(cls, n=None):
-        """
-        Generate random Euler angles
-        """
+        """Generate random Euler angles. """
         return np.array([Azimuth.random(n), Polar.random(n), Azimuth.random(n)])
+    
 
 class AxisAngle(Parameterization):
 
@@ -359,22 +352,23 @@ class AxisAngle(Parameterization):
         return np.array(axisangle.params(np.ascontiguousarray(R)))
 
     def _to_matrix(self):
-        R = np.ascontiguousarray(np.zeros((3,3)))
+        R = np.ascontiguousarray(np.zeros((3, 3)))
         axisangle.matrix(self.dofs, R)
         return R
 
     @property
     def jacobian(self):
-        J = np.zeros((3,3,3))
-        axisangle.jacobian(self.dofs, J[0], J[1], J[2])
+        J = np.zeros((3, 3, 3))
+        axisangle.jacobian(self.dofs, *J)
         return J
 
     @classmethod
     def random(cls, n=None):
-        """
-        Generate random axis and angle
-        """
-        return np.array([Polar.random(n), Azimuth.random(n), RotationAngle.random(n)])
+        """Generate random axis and angle. """
+        
+        return np.array(
+            [Polar.random(n), Azimuth.random(n), RotationAngle.random(n)])
+    
 
 class ExponentialMap(AxisAngle):
     """ExponentialMap
@@ -386,14 +380,14 @@ class ExponentialMap(AxisAngle):
         a = np.linalg.norm(self.dofs)
         n = self.dofs / a
 
-        return n, a
+        return n, np.mod(a, 2*np.pi)
 
     @classmethod
     def _from_matrix(cls, R):
         return np.array(expmap.params(np.ascontiguousarray(R)))
         
     def _to_matrix(self):
-        R = np.ascontiguousarray(np.zeros((3,3)))
+        R = np.ascontiguousarray(np.zeros((3, 3)))
         expmap.matrix(self.dofs, R)
         return R
 
@@ -422,21 +416,23 @@ class ExponentialMap(AxisAngle):
         return u * a
         
     def rotate(self, v):
-        """
-        Rodrigues formula
-        """
+        """Rodrigues formula. """
+
         n, a = self.axis_angle
 
-        return np.cos(a)*v + np.sin(a)*np.cross(n,v) + (1-np.cos(a)) * np.dot(n, v) * n
+        return np.cos(a) * v \
+             + np.sin(a) * np.cross(n, v) \
+             + (1-np.cos(a)) * np.dot(v, n) * n
 
+    
 class Quaternion(Parameterization):
     """Quaternion
 
-    Parameterization of a three-dimensional rotation matrix in terms of
-    a unit quaternion.
+    Parameterization of a three-dimensional rotation matrix in terms of a unit
+    quaternion.
     """
     def _to_matrix(self):
-        R = np.ascontiguousarray(np.zeros((3,3)))
+        R = np.ascontiguousarray(np.zeros((3, 3)))
         quaternion.matrix(self.dofs, R)
         return R
 
@@ -446,8 +442,8 @@ class Quaternion(Parameterization):
 
     @property
     def jacobian(self):
-        J = np.zeros((4,3,3))
-        quaternion.jacobian(self.dofs, J[0], J[1], J[2], J[3])
+        J = np.zeros((4, 3, 3))
+        quaternion.jacobian(self.dofs, *J)
         return J
 
     @classmethod
@@ -479,8 +475,8 @@ class Quaternion(Parameterization):
         
         theta = 2 * np.arctan2(np.linalg.norm(q[1:]), q[0])
 
-        if theta < 1e-5:
-            axis = np.array([0,0,1])
+        if np.isclose(theta, 0):
+            axis = np.array([0, 0, 1])
         else:
             axis = q[1:] / np.sqrt(1-q[0]**2)
 
@@ -490,9 +486,7 @@ class Quaternion(Parameterization):
         self.dofs /= np.linalg.norm(self.dofs) + 1e-100
 
     def rotate(self, v):
-        """
-        Rotate 3d vector
-        """
+        """Rotate 3d vector. """
         x = 2 * np.cross(self.dofs[1::], v)
 
         return v + self.dofs[0] * x + np.cross(self.dofs[1::], x)

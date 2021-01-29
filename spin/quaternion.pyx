@@ -152,11 +152,10 @@ def jacobian(double[::1] q, double[:, ::1] A, double[:, ::1] B,
 @cython.boundscheck(True)
 @cython.wraparound(False)
 def map_to_quat(double[:, ::1] A, double[:, ::1] M):
-    """
-    Construct a 4x4 matrix 'M' such that the (linear) inner product
-    between the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)')
-    can be written in quadratic form: 'np.dot(q,M.dot(q))' where 'q'
-    is the unit quaternion encoding 'R'.
+    """Construct a 4x4 matrix 'M' such that the (linear) inner product between
+    the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)') can be written in
+    quadratic form: 'np.dot(q, M.dot(q))' where 'q' is the unit quaternion
+    encoding 'R'.
     """
     M[0,0] =  A[0,0] + A[1,1] + A[2,2]
     M[1,1] =  A[0,0] - A[1,1] - A[2,2]

@@ -5,17 +5,16 @@ import numpy as np
 
 from functools import reduce
 
+
 def compose(*trafos):
-    """
-    Compose a sequence a transformations.
-    """
+    """Compose a sequence a transformations."""
     return reduce(lambda a, b: a(b), trafos)
+
 
 class Transformation(object):
     """Transformation
 
-    Abstract class representating a transformation of a set of
-    coordinates. 
+    Abstract class representing a transformation of a set of coordinates. 
     """
     ## these methods / properties need to be implemented by classes
     ## inherited from Transformation
@@ -32,9 +31,7 @@ class Transformation(object):
         raise NotImplementedError
 
     def map_forces(self, coords, forces):
-        """
-        Map Cartesian forces into space of transformation parameters.
-        """
+        """Map Cartesian forces into space of transformation parameters. """
         raise NotImplementedError
     
     @property
@@ -44,16 +41,15 @@ class Transformation(object):
     ### <<<<<<<<
 
     def __call__(self, other):
-        """
-        Apply transformation to another transformation, vector or
-        matrix of vectors.
+        """Apply transformation to another transformation, vector or matrix of
+        vectors.
         """
         if isinstance(other, self.__class__):
             return self._compose(other)
-        elif type(other) == np.ndarray and other.ndim in (1,2):
+        elif type(other) == np.ndarray and other.ndim in (1, 2):
             return self._apply(other)
         else:
-            msg = 'Argument must be other transformation or vector or matrix'
+            msg = 'Expected other transformation or vector or matrix'
             return TypeError(msg)
 
     @property
@@ -67,6 +63,7 @@ class Transformation(object):
     @property
     def n_dofs(self):
         return len(self.dofs)
+
     
 class Translation(Transformation):
     """Translation

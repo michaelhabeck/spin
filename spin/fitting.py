@@ -7,25 +7,26 @@ import scipy.linalg as la
 from .trafo import Transformation
 from .rotation import Rotation, Quaternion, map_to_quat
 
+
 def qfit(target, source):
-    """
-    Least-squares fitting of source onto target using unit
-    quaternions
+    """Least-squares fitting of source onto target using unit quaternions. 
 
     Parameters
     ----------
-    target : (N,3) array
-      3D point cloud onto which the source will be transformed
-    source : (N,3) array
-      3D point cloud that will be transformed so as to fit the
-      target optimally in a least-squares sense
+    target : (N, 3) array
+        3D point cloud onto which the source will be transformed
+
+    source : (N, 3) array
+        3D point cloud that will be transformed so as to fit the target
+        optimally in a least-squares sense
 
     Returns
     -------
-    R : (3,3) array
-      optimal rotation matrix
-    t : (3,) array
-      optimal translation vector
+    R : (3, 3) array
+        Optimal rotation matrix
+
+    t : (3, ) array
+        Optimal translation vector
     """
     assert target.ndim == 2
     assert np.shape(target)[1] == 3
@@ -36,12 +37,13 @@ def qfit(target, source):
     A = np.dot((target-x).T, source-y)
     M = map_to_quat(A)
 
-    _, q = la.eigh(M, eigvals=[3,3])
+    _, q = la.eigh(M, eigvals=[3, 3])
 
     R = Quaternion(q.flatten()).matrix
     t = x - R.dot(y)
 
     return R, t
+
 
 class LeastSquares(object):
     """LeastSquares
@@ -58,7 +60,8 @@ class LeastSquares(object):
         trafo : instance of Transformation class
           Optional parameterization of the rotation matrix
         """
-        if target.shape != source.shape or target.ndim != 2 or target.shape[1] != 3:
+        if target.shape != source.shape or target.ndim != 2 \
+          or target.shape[1] != 3:
             msg = 'input coordinate arrays must have rank 2 and shape (n,3)'
             raise ValueError(msg)
 
@@ -73,16 +76,14 @@ class LeastSquares(object):
         self.values = []
         
     def forces(self, params):
-        """
-        Displacement vectors between both coordinate arrays after rotation
-        of the second array
+        """Displacement vectors between both coordinate arrays after rotation
+        of the second array. 
         """
         self.trafo.dofs = params
         return self.trafo(self.source) - self.target
 
     def __call__(self, dofs):
-        """
-        Least-squares residual
+        """Least-squares residual. 
         """
         residual = 0.5 * np.sum(self.forces(dofs)**2)
         self.values.append(residual)
@@ -90,9 +91,8 @@ class LeastSquares(object):
         return residual
 
     def gradient(self, dofs):
-        """
-        Gradient of least-squares residual with respect to rotational
-        parameters
+        """Gradient of least-squares residual with respect to rotational
+        parameters. 
         """
         forces = self.forces(dofs)
         coords = self.source
@@ -123,6 +123,7 @@ class LeastSquares(object):
 
         return self.trafo.__class__(R), rmsd
 
+    
 class NearestRotation(object):
     """NearestRotation
 
@@ -182,6 +183,7 @@ class NearestRotation(object):
 
         return self.trafo.__class__(R)
 
+    
 class NearestUnitQuaternion(NearestRotation):
     """NearestUnitQuaternion
 
@@ -224,6 +226,7 @@ class NearestUnitQuaternion(NearestRotation):
 
         return Quaternion(q * np.sign(q[0]))
 
+    
 class NearestQuaternion(NearestUnitQuaternion):
     """NearestQuaternion
 
@@ -231,23 +234,20 @@ class NearestQuaternion(NearestUnitQuaternion):
     closest (in a least-squares sense) to some general 3x3 matrix.
     """
     def __call__(self, q):
-        """
-        Inner product between rotation matrix and input target matrix
-        """
-        if isinstance(q, Quaternion):
-            q = q.dofs
-
-        return super(NearestQuaternion, self).__call__(q) / np.dot(q,q)
+        """Inner product between rotation matrix and input target matrix. """
+        
+        if isinstance(q, Quaternion): q = q.dofs
+            
+        return super(NearestQuaternion, self).__call__(q) / np.dot(q, q)
 
     def gradient(self, q):
+        """Gradient taking into account that input quaternion does not need to
+        lie on the 4d-sphere. 
         """
-        Gradient taking into account that input quaternion does not need to lie
-        on the 4d-sphere
-        """
-        if isinstance(q, Quaternion):
-            q = q.dofs
-            
-        return (super(NearestQuaternion, self).gradient(q) - 2 * self(q) * q) / np.dot(q,q)
+        if isinstance(q, Quaternion): q = q.dofs
+
+        grad = super(NearestQuaternion, self).gradient(q)
+        return (grad - 2*self(q)*q) / np.dot(q, q)
 
 
     

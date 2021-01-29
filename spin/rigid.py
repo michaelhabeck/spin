@@ -6,6 +6,7 @@ import numpy as np
 from .trafo import Transformation, Translation
 from .rotation import Rotation
 
+
 class RigidTransformation(Transformation):
     """RigidTransformation
 
@@ -44,20 +45,19 @@ class RigidTransformation(Transformation):
         Parameters
         ----------
         R : numpy array
-          Three-dimensional rotation matrix
+            Three-dimensional rotation matrix
 
         t : numpy array
-          Three-dimensional translation vector
+            Three-dimensional translation vector
 
         rotation_type : subclass of Rotation
-          Optional parameterization 
+            Optional parameterization 
         """
         if not issubclass(rotation_type, Rotation):
             msg = 'rotation type must be subclass of Rotation'
             raise TypeError(msg)
         
-        self.rotation    = rotation_type(R)
-        self.translation = Translation(t)
+        self.rotation, self.translation = rotation_type(R), Translation(t)
 
     def _apply(self, other):
         return self.translation._apply(self.rotation._apply(other))
