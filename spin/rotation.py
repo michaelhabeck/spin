@@ -3,6 +3,7 @@ Three-dimensional rotation implemented as subclasses of Transformation. Support
 for various parameterizations including quaternions, Euler angles, axis-angle
 and the exponential map.
 """
+import abc
 import numpy as np
 import csb.numeric as csb
 
@@ -49,35 +50,33 @@ def distance(a, b):
 def map_to_quat(A):
     """Construct a 4x4 matrix 'M' such that the (linear) inner product between
     the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)') can be written in
-    quadratic form: 'np.dot(q,M.dot(q))' where 'q' is the unit quaternion
+    quadratic form: 'np.dot(q, M.dot(q))' where 'q' is the unit quaternion
     encoding 'R'.
-    """
-    assert np.shape(A) == (3, 3), '(3,3) matrix required'
-    
-    M = np.empty((4, 4), dtype=A.dtype)
 
-    M[0,0] =  A[0,0] + A[1,1] + A[2,2]
-    M[1,1] =  A[0,0] - A[1,1] - A[2,2]
-    M[2,2] = -A[0,0] + A[1,1] - A[2,2]
-    M[3,3] = -A[0,0] - A[1,1] + A[2,2]
+    We have:
 
-    M[0,1] = M[1,0] = -A[1,2] + A[2,1]
-    M[0,2] = M[2,0] =  A[0,2] - A[2,0] 
-    M[0,3] = M[3,0] = -A[0,1] + A[1,0]
+        M[0, 0] =  A[0, 0] + A[1, 1] + A[2, 2]
+        M[1, 1] =  A[0, 0] - A[1, 1] - A[2, 2]
+        M[2, 2] = -A[0, 0] + A[1, 1] - A[2, 2]
+        M[3, 3] = -A[0, 0] - A[1, 1] + A[2, 2]
 
-    M[1,2] = M[2,1] =  A[0,1] + A[1,0]
-    M[1,3] = M[3,1] =  A[0,2] + A[2,0]
+        M[0, 1] = M[1, 0] = -A[1, 2] + A[2, 1]
+        M[0, 2] = M[2, 0] =  A[0, 2] - A[2, 0] 
+        M[0, 3] = M[3, 0] = -A[0, 1] + A[1, 0]
 
-    M[2,3] = M[3,2] =  A[1,2] + A[2,1]
+        M[1, 2] = M[2, 1] =  A[0, 1] + A[1, 0]
+        M[1, 3] = M[3, 1] =  A[0, 2] + A[2, 0]
 
-    return M
+        M[2, 3] = M[3, 2] =  A[1, 2] + A[2, 1]    
 
+    Parameters
+    ----------
+    A : ndarray
+        (3, 3) numpy array
 
-def map_to_quat(A):
-    """Construct a 4x4 matrix 'M' such that the (linear) inner product between
-    the 3x3 matrix 'A' and a rotation 'R' (i.e. 'sum(A*R)') can be written in
-    quadratic form: 'np.dot(q,M.dot(q))' where 'q' is the unit quaternion
-    encoding 'R'.
+    Returns
+    -------
+    (4, 4) symmetric numpy array
     """
     assert np.shape(A) == (3, 3), '(3, 3) matrix required'
     
@@ -90,26 +89,23 @@ def map_to_quat(A):
 
 class Angle(object):
 
-    @classmethod
     def random(cls, n):
-        raise NotImplementedError
+        pass 
 
-    @classmethod
-    def log_prob(cls, x):
-        raise NotImplementedError
-
-    @classmethod
     def axis(cls, n):
-        raise NotImplementedError
+        pass 
+
+    def log_prob(cls, x):
+        pass 
 
     @classmethod
     def prob(cls, x, normed=True):
 
-        p = np.exp(cls.log_prob(x))
+        prob = np.exp(cls.log_prob(x))
         if np.iterable(x) and normed:
-            p /= csb.trapezoidal(x, p)
+            prob /= csb.trapezoidal(x, prob)
 
-        return p
+        return prob
 
     
 class Azimuth(Angle):
@@ -134,8 +130,7 @@ class Polar(Angle):
     @classmethod
     def random(cls, n=None):
         """Generate random polar angles. """
-        u = np.random.uniform(-1.,1.,size=n)
-        return np.arccos(u)
+        return np.arccos(np.random.uniform(-1, 1, size=n))
 
     @classmethod
     def log_prob(cls, x):
@@ -154,14 +149,12 @@ class RotationAngle(Angle):
         \alpha ~ sin^2(\alpha/2)
         """
         if n is None:
-
             u = np.random.random() * np.pi
             f = lambda x, y=u : x - np.sin(x) - y
 
             return brentq(f, *cls.axis(2))
 
-        else:
-            return np.array([cls.random() for _ in range(int(n))])
+        return np.array([cls.random() for _ in range(int(n))])
 
     @classmethod
     def log_prob(cls, x):
@@ -190,7 +183,6 @@ class Rotation(Transformation):
         return self.__class__(np.dot(self.matrix, other.matrix))
 
     def _apply(self, other):
-
         if other.ndim == 1:
             return np.dot(self.matrix, other)
         else:
@@ -201,20 +193,18 @@ class Rotation(Transformation):
 
     def map_forces(self, coords, forces):
         """Map Cartesian gradient into space of rotation matrices. """
-
         return np.dot(forces.T, coords)
     
     def __str__(self):
         return '{0}:\n  {1}'.format(
-            self.name, str(np.round(self.matrix,3)).replace('\n','\n  '))
+            self.name, str(np.round(self.matrix, 3)).replace('\n', '\n  '))
 
     @classmethod
     def random(cls, n=None):
         """Random rotation matrix. """
         if n is None:
-            return random_rotation(np.zeros((3,3)))
-        else:
-            return np.array([cls.random() for _ in range(n)])
+            return random_rotation(np.zeros((3, 3)))
+        return np.array([cls.random() for _ in range(n)])
 
     @property
     def dofs(self):
@@ -226,7 +216,7 @@ class Rotation(Transformation):
         R = np.reshape(values, (3,3))
 
         if self.check_matrix and not is_rotation_matrix(R):
-            msg = 'Input matrix must be a rotation matrix'
+            msg = 'Expected a rotation matrix'
             raise ValueError(msg)
                 
         self.matrix[...] = R
@@ -269,10 +259,12 @@ class Parameterization(Rotation):
 
     @dofs.setter
     def dofs(self, dofs):
-        self._dofs = dofs
+        self._dofs[...] = dofs
 
     def __init__(self, dofs=None):
 
+        self._dofs = self.__class__._from_matrix(np.eye(3))
+        
         if dofs is None:
             dofs = self.__class__.random()
         elif np.iterable(dofs):
@@ -291,12 +283,10 @@ class Parameterization(Rotation):
 
     @classmethod
     def from_rotation(cls, rotation):
-        """
-        Calculate parameters from rotation matrix
-        """
+        """Calculate parameters from rotation matrix. """
         if isinstance(rotation, Rotation):
             R = rotation.matrix
-        elif type(rotation) == np.ndarray and rotation.shape == (3,3):
+        elif isinstance(rotation, np.ndarray) and rotation.shape == (3, 3):
             R = rotation
         else:
             msg = 'Argument must be instance of Rotation or 3x3 numpy array'
@@ -305,12 +295,13 @@ class Parameterization(Rotation):
         return cls(cls._from_matrix(R))
 
     def map_forces(self, coords, forces):
+        """Map Cartesian gradient onto parameter space by means of the chain
+        rule. 
         """
-        Map Cartesian gradient onto parameter space by means of the chain rule
-        """
-        grad = super(Parameterization, self).map_forces(coords, forces).flatten()
-        return np.sum(self.jacobian.reshape(self.n_dofs,-1) * grad, 1)
+        grad = super().map_forces(coords, forces).flatten()
+        return np.sum(self.jacobian.reshape(self.n_dofs,- 1) * grad, axis=1)
 
+    
 class EulerAngles(Parameterization):
     """EulerAngles
 
