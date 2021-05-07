@@ -56,7 +56,7 @@ def params(double[:, ::1] R):
 
 @cython.boundscheck(True)
 @cython.wraparound(False)
-def params_(double[:, ::1] R):
+def params(double[:, ::1] R):
 
     cdef double a, b, c, d
 
