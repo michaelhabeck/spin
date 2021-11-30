@@ -42,9 +42,13 @@ def skew_matrix(a):
 
 def distance(a, b):
     """Frobenius distance between two three-dimensional rotation matrices. """
-    if isinstance(a, Rotation): a = a.matrix
-    if isinstance(b, Rotation): b = b.matrix
-    return 1 - np.sum(a*b) / 3
+    if isinstance(a, Rotation):
+        a = a.matrix
+    if isinstance(b, Rotation):
+        b = b.matrix
+    a = a.reshape(-1, 9)
+    b = b.reshape(-1, 9)
+    return np.squeeze(1 - np.sum(a * b, axis=1) / 3)
 
 
 def map_to_quat(A):
